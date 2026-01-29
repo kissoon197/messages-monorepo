@@ -1,24 +1,48 @@
-import './style.css'
-import javascriptLogo from './javascript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.js'
+const display = document.getElementById("app");
+const form = document.getElementById("form");
 
-document.querySelector('#app').innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-      <img src="${javascriptLogo}" class="logo vanilla" alt="JavaScript logo" />
-    </a>
-    <h1>Hello Vite!</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite logo to learn more
-    </p>
-  </div>
-`
+async function fetchData() {
+  const response = await fetch(`http://localhost:4242/messages`);
+  const messages = await response.json();
 
-setupCounter(document.querySelector('#counter'))
+  console.log(messages);
+
+  return messages;
+}
+
+async function displayMessages() {
+  const messages = await fetchData();
+
+  messages.forEach((message) => {
+    const div = document.createElement("div");
+    const userName = document.createElement("p");
+    const messageContent = document.createElement("p");
+
+    userName.textContent = message.msg_name;
+    messageContent.textContent = message.content;
+
+    div.append(userName, messageContent);
+
+    display.appendChild(div);
+  });
+}
+displayMessages();
+
+async function handleSubmit(event) {
+  event.preventDefault();
+
+  const formData = new FormData(form);
+  const userInput = Object.fromEntries(formData);
+  const userInputJSON = JSON.stringify(userInput);
+
+  const response = await fetch(`http://localhost:4242/messages`, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+    body: userInputJSON,
+  });
+  window.location.reload();
+}
+
+form.addEventListener("submit", handleSubmit);
